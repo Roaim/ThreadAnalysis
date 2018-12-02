@@ -18,13 +18,16 @@ public class ThreadPool {
     }
 
     public void execute() {
-        mList.forEach(Thread::start);
-        mList.forEach(thread -> {
-            try {
-                thread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        });
+		for(Thread t: mList) {
+			t.start();
+		}
+		for(Thread t: mList) {
+			try
+			{
+				t.join();
+			}
+			catch (InterruptedException e)
+			{e.printStackTrace();}
+		}
     }
 }

@@ -33,26 +33,27 @@ public class SingleVsMultiThread {
         System.out.println("Single thread started");
         long initTime = System.currentTimeMillis();
         List<String> listPage = getPageResponse();
-        listPage.forEach(page -> {
-            System.out.println("Page: " + page + "; Started");
+		for(String page: listPage) {
+			System.out.println("Page: " + page + "; Started");
             List<String> listSelector = getSelectorResponse(page);
             System.out.println("success selector response of " + page);
-            listSelector.forEach(selector -> {
-                System.out.println("Selector: " + selector + "; started");
+			for(String selector:listSelector) {
+				System.out.println("Selector: " + selector + "; started");
                 List<String> listContent = getContentResponse(selector);
                 System.out.println("success content response of " + selector);
-                listContent.forEach(content -> {
-                    System.out.println("Started: " + content);
+                for(String content:listContent) {
+					System.out.println("Started: " + content);
                     try {
-                        Thread.sleep(100);
+                        Thread.sleep(10);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                     System.out.println("Ended: " + content);
                     increaseSingleThreadContentCount();
-                });
-            });
-        });
+				}
+			}
+
+		}
         System.out.println("success page response");
         return (System.currentTimeMillis() - initTime) / 1000;
     }
@@ -69,57 +70,72 @@ public class SingleVsMultiThread {
         List<String> listPage = getPageResponse();
         System.out.println("success page response");
         ThreadPool threadPool = ThreadPool.newPool();
-        listPage.forEach(p -> {
-            Thread t = getPage(p);
+		for(String p:listPage) {
+			Thread t = getPage(p);
             threadPool.addThread(t);
-        });
+		}
         threadPool.execute();
         return (System.currentTimeMillis() - initTime) / 1000;
     }
 
-    private static Thread getPage(String page) {
-        Thread thread = new Thread(() -> {
-            System.out.println("Page: " + page + "; Started");
-            List<String> listSelector = getSelectorResponse(page);
-            System.out.println("success selector response of " + page);
-            ThreadPool threadPool = ThreadPool.newPool();
-            listSelector.forEach(selector -> {
-                Thread t = getSelector(selector);
-                threadPool.addThread(t);
-            });
-            threadPool.execute();
-            System.out.println("Page: " + page + " Ended");
-        });
+    private static Thread getPage(final String page) {
+        Thread thread = new Thread(new Runnable(){
+
+				@Override
+				public void run()
+				{
+					System.out.println("Page: " + page + "; Started");
+					List<String> listSelector = getSelectorResponse(page);
+					System.out.println("success selector response of " + page);
+					ThreadPool threadPool = ThreadPool.newPool();
+					for(String selector:listSelector){
+						Thread t = getSelector(selector);
+						threadPool.addThread(t);
+					}
+					threadPool.execute();
+					System.out.println("Page: " + page + " Ended");
+				}
+			});
         return thread;
     }
 
-    private static Thread getSelector(String selector) {
-        Thread thread = new Thread(() -> {
-            System.out.println("Selector: " + selector + "; started");
-            List<String> listContent = getContentResponse(selector);
-            System.out.println("success content response of " + selector);
-            ThreadPool threadPool = ThreadPool.newPool();
-            listContent.forEach(content -> {
-                Thread t = getContent(content);
-                threadPool.addThread(t);
-            });
-            threadPool.execute();
-            System.out.println("Selector: " + selector + "; ended");
-        });
+    private static Thread getSelector(final String selector) {
+        Thread thread = new Thread(new Runnable(){
+
+				@Override
+				public void run()
+				{
+					System.out.println("Selector: " + selector + "; started");
+					List<String> listContent = getContentResponse(selector);
+					System.out.println("success content response of " + selector);
+					ThreadPool threadPool = ThreadPool.newPool();
+					for(String content:listContent){
+						Thread t = getContent(content);
+						threadPool.addThread(t);
+					}
+					threadPool.execute();
+					System.out.println("Selector: " + selector + "; ended");
+				}
+			});
         return thread;
     }
 
-    private static Thread getContent(String content) {
-        Thread thread = new Thread(() -> {
-            System.out.println("Started: " + content);
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            System.out.println("Ended: " + content);
-            increaseMultiThreadContentCount();
-        });
+    private static Thread getContent(final String content) {
+        Thread thread = new Thread(new Runnable(){
+
+				@Override
+				public void run()
+				{
+					System.out.println("Started: " + content);
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					System.out.println("Ended: " + content);
+					increaseMultiThreadContentCount();
+				}
+			});
         return thread;
     }
 
